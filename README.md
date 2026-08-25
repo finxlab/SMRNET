@@ -1,40 +1,56 @@
-SMRNET: Sector-aware Market Response Network for Robust Cross-Sectional Stock Return Ranking Prediction
+# 	SMRNET: Sector-aware Market Response Network for Robust Cross-Sectional Stock Return Ranking Prediction
 
-This repository contains the official PyTorch implementation of SMRNET.
+
+This repository contains the official PyTorch implementation of **SMRNET**.
+
 ---
-🌟 Model Architecture
+
+## 🌟 Model Architecture
+
 SMRNET consists of four sequential stages:
-(1) Temporal Orthogonal Embedding
+
+### (1) Temporal Orthogonal Embedding
 Historical time-series features of each equity are encoded via a multi-kernel CNN (`StockCNNEmbedding`) with kernel sizes of {1, 5, 11} to capture heterogeneous temporal patterns. A temporal self-attention mechanism (`TemporalSelfAttention`) then distills the most informative signals across the lookback window. The resulting representations are projected through an orthogonal linear transformation parametrized by the Cayley transform (`orthogonal_cayley`), preserving the geometric integrity of the representation space.
-(2) Sector-aware Decomposition
-Inspired by the α/β decomposition of CAPM, each equity's latent representation is geometrically decoupled into a sector-common component (BETA) and an equity-specific residual component (ALPHA) via the `Neutralizer` module. The sector prototype is derived by average pooling over same-sector equities (`find_sector`). The two isolated components are then independently aggregated through dual GAT streams within `MarketGAT`:
-Alpha-stream GAT: aggregates idiosyncratic (ALPHA) signals among same-sector stocks
-Beta-stream GAT: aggregates systematic (BETA) signals among same-sector stocks
-(3) Signed Interaction Fusion (SIF)
+
+### (2) Sector-aware Decomposition
+Inspired by the α/β decomposition of CAPM, each equity's latent representation is geometrically decoupled into a sector-common component (**BETA**) and an equity-specific residual component (**ALPHA**) via the `Neutralizer` module. The sector prototype is derived by average pooling over same-sector equities (`find_sector`). The two isolated components are then independently aggregated through dual GAT streams within `MarketGAT`:
+- **Alpha-stream GAT**: aggregates idiosyncratic (ALPHA) signals among same-sector stocks
+- **Beta-stream GAT**: aggregates systematic (BETA) signals among same-sector stocks
+
+### (3) Signed Interaction Fusion (SIF)
 The outputs of the dual GAT streams are fused via `SignedInteractionFusion`, which explicitly preserves both positive (+) and negative (−) directional cues. Cross-component interactions are computed separately for each polarity, selectively amplifying robust predictive signals while suppressing noise.
-(4) Prediction
+
+### (4) Prediction
 The fused representations are mapped to predicted returns via `PositiveLinear`, a linear layer constrained by non-negative weights (via squared parametrization). This ensures that the directional signals disentangled during SIF are preserved without sign inversion, allowing each component's directional contribution to be directly reflected in the final output.
+
 ---
-📂 Project Structure
-File/Folder	Description
-`dataset/`	Data directory
-`lib/Model.py`	Model architecture (`SMRNET`, `UnifiedModel`)
-`lib/modules.py`	Core building blocks
-`lib/datasetLoader.py`	Data loading utilities
-`lib/Metric.py`	Evaluation metrics (IC, RIC, AR, SR)
-`DataManager.py`	Dataset download & preprocessing via WRDS
-`train.py`	Training logic and validation loops
-`run.py`	Main entry point for training
-`test.py`	Script for inference and evaluation
-`scripts.sh`	Shell script for training pipeline
-`scripts_test.sh`	Shell script for test pipeline
+
+## 📂 Project Structure
+| File/Folder | Description |
+| :--- | :--- |
+| `dataset/` | Data directory |
+| `lib/Model.py` | Model architecture (`SMRNET`, `UnifiedModel`) |
+| `lib/modules.py` | Core building blocks |
+| `lib/datasetLoader.py` | Data loading utilities |
+| `lib/Metric.py` | Evaluation metrics (IC, RIC, AR, SR) |
+| `DataManager.py` | Dataset download & preprocessing via WRDS |
+| `train.py` | Training logic and validation loops |
+| `run.py` | Main entry point for training |
+| `test.py` | Script for inference and evaluation |
+| `scripts.sh` | Shell script for training pipeline |
+| `scripts_test.sh` | Shell script for test pipeline |
+
 ---
-⚙️ Environment Setup
-The code is tested with Python 3.11+.
-1. Requirements
+
+## ⚙️ Environment Setup
+The code is tested with **Python 3.11+**.
+
+### 1. Requirements
+
 ```bash
 pip install -r requirements.txt
 ```
+
 Main Dependencies:
 ```
 numpy==2.4.2
@@ -49,30 +65,42 @@ PyYAML==6.0.3
 networkx==3.6.1
 wrds>=3.1.0
 ```
+
 > **PyTorch**: Install manually depending on your CUDA version.
 > ```bash
 > pip install torch==2.7.1+cu128 --index-url https://download.pytorch.org/whl/cu128
 > ```
+
 > **TA-Lib**: Install the C library first before pip install.
 > ```bash
 > pip install ta-lib==0.6.4
 > ```
 > See: https://ta-lib.org/install/#linux-build-from-source
+
 ---
-🗄️ Data Preparation
+
+## 🗄️ Data Preparation
+
 > ⚠️ **Note on Data Access:**
 > This project uses **CRSP data** accessed via **WRDS (Wharton Research Data Services)**.
 > A valid WRDS account with CRSP subscription is required.
 > Data **cannot be publicly redistributed** due to licensing restrictions.
+
 Once WRDS access is configured, download the stock universe as follows:
+
 ```bash
 # Download Top N stocks by market cap (dynamic universe)
 python DataManager.py --topk 500
 ```
+
 This will generate the required dataset files under `./dataset/`.
+
 ---
-🚀 Execution Pipeline
-1) Training & Validation
+
+## 🚀 Execution Pipeline
+
+### 1) Training & Validation
+
 ```bash
 # Method 1: Using shell script
 bash scripts.sh
@@ -89,7 +117,9 @@ python run.py \
     --loss IC \
     --test_date 2025-12-31
 ```
-2) Testing & Performance Evaluation
+
+### 2) Testing & Performance Evaluation
+
 ```bash
 # Method 1: Using shell script
 bash scripts_test.sh
@@ -101,8 +131,10 @@ python test.py \
     --test_date 2025-12-31 \
     --setting seed2026_lr0.0001_hd64_gh1_nh1_dr0.3
 ```
-4) Expected Output
+
+### 4) Expected Output
 `test.py` reports the final metrics in JSON format. The results are displayed in the console and automatically saved as `best_test_metric.json` in the model checkpoint directory.
+
 ```json
 {
     "Z-MSE": 1.000014305114746,
@@ -122,5 +154,6 @@ python test.py \
 }
 ```
 
-License
+
+## License
 For review purposes only. Full license information will be provided upon publication.
