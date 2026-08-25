@@ -1,0 +1,16 @@
+numpy==2.4.2
+pandas==2.2.3
+matplotlib==3.10.8
+scikit-learn==1.8.0
+scipy==1.16.3
+tqdm==4.67.3
+pyarrow==23.0.1
+openpyxl==3.1.5
+PyYAML==6.0.3
+networkx==3.6.1
+# PyTorch with CUDA: install manually depending on your CUDA version
+# e.g. pip install torch==2.7.1+cu128 --index-url https://download.pytorch.org/whl/cu128
+# ta-lib: install the C library first before pip install
+# e.g. ta-lib==0.6.4
+# see https://ta-lib.org/install/#linux-build-from-source
+# pip install wrds
